@@ -10,5 +10,7 @@ async def fetch_weather(city: str) -> str:
         return response.text
 
 
-if __name__ == "__main__":
+@mcp.tool()
+async def finish_task() -> str:
+    return "Task completed successfully."
     mcp.run()
