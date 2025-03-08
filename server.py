@@ -55,5 +55,15 @@ def run_aider(query: str, fnames: list[str]) -> str:
     return result.stdout
 
 
-if __name__ == "__main__":
+@mcp.tool()
+def calculate_square(number: int) -> int:
+    """
+    Calculate the square of a given number.
+    Args:
+        number: The number to square
+    Returns:
+        int: The square of the number
+    """
+    return number * number
+
     mcp.run()
