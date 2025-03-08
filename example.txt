@@ -1,0 +1,3 @@
+This is an example text file.
+The agent should be able to read this file.
+Try checking the weather in San Francisco, New York, and London. 
