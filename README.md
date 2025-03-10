@@ -1,63 +1,130 @@
-# Weather Agent
+# AI Agent CLI
 
-A simple agent that uses the OpenAI API to fetch weather information for different cities.
+A command-line utility for running an AI agent that can execute commands and perform tasks from any directory.
 
-## Overview
+## Features
 
-This project demonstrates how to build an agent that can interact with a weather API using natural language. The agent uses the OpenAI API to understand user queries and generate appropriate responses.
+- Execute terminal commands in the current directory
+- Run Aider code analysis and modification
+- Fetch information from external APIs
+- Easy to use CLI interface
+- **Simple Unix-like behavior** - just navigate to your directory and run the agent
+- **Centralized logging** - logs are stored in a platform-specific location
 
-The agent is designed to be tool-agnostic, meaning it dynamically discovers available tools from the MCP server rather than having them hardcoded. This makes it more flexible and adaptable to different MCP servers with different tool sets.
+## Installation
 
-## Components
+### From Source
 
-- `weather.py`: A simple MCP server that provides a weather API
-- `agent.py`: The core agent implementation
-- `weather_agent.py`: A wrapper around the agent that uses the OpenAI API
-
-## Setup
-
-1. Clone the repository
-2. Install the dependencies:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/ai-agent-cli.git
+   cd ai-agent-cli
    ```
-   pip install openai python-dotenv httpx mcp
+
+2. Install the package:
+   ```bash
+   pip install -e .
    ```
-3. Create a `.env` file with your OpenAI API key:
+
+### Quick Install
+
+Run the installation script:
+```bash
+./install.sh
+```
+
+This will:
+- Install the package in development mode
+- Make the script executable
+- Create a symlink in /usr/local/bin (if possible)
+- Check for the OpenAI API key
+
+### Requirements
+
+- Python 3.8 or higher
+- OpenAI API key
+
+## Configuration
+
+1. Set your OpenAI API key as an environment variable:
+   ```bash
+   export OPENAI_API_KEY="your-api-key"
+   ```
+
+   Or create a `.env` file in your project directory:
    ```
    OPENAI_API_KEY=your-api-key
    ```
 
 ## Usage
 
-Run the weather agent with a query:
+### Basic Usage
+
+Navigate to the directory where you want to work and run the agent:
 
 ```bash
-python weather_agent.py "What's the weather like in London and Tokyo?"
+cd ~/my-project
+agent "Run ls -la"
 ```
 
-You can also use the agent in your own code:
+### Specifying a Custom Server Script
 
-```python
-import asyncio
-from weather_agent import run_weather_agent
-
-async def main():
-    result = await run_weather_agent("What's the weather like in San Francisco?")
-    print(result)
-
-asyncio.run(main())
+```bash
+agent --server /path/to/custom/server.py "List files in this directory"
 ```
 
-## How it Works
+### Specifying a Custom Logs Directory
 
-1. The agent receives a natural language query from the user
-2. It connects to the MCP server and dynamically discovers available tools
-3. It uses the OpenAI API to generate a response that includes a tool call
-4. The tool call is executed to fetch the weather information
-5. The agent uses the OpenAI API again to generate a final answer based on the weather information
+```bash
+agent --logs-dir ~/my-logs "Run ls -la"
+```
 
-## Extending the Agent
+By default, logs are stored in:
+- **Windows**: `%APPDATA%\AI-Agent-CLI\logs`
+- **macOS**: `~/Library/Application Support/AI-Agent-CLI/logs`
+- **Linux**: `~/.ai-agent-cli/logs`
 
-Because the agent dynamically discovers tools, you can easily extend it to work with different MCP servers that provide different tools. Simply change the `server_parameters` in the `run_weather_agent` function to point to your MCP server.
+### Interactive Mode
+
+If you run the command without a query, it will prompt you to enter one:
+
+```bash
+agent
+# Enter your query: Run ls -la
+```
+
+### Verbose Mode
+
+For more detailed logging:
+
+```bash
+agent --verbose "Run ls -la"
+```
+
+## Available Commands
+
+The agent can understand natural language queries and use the following tools:
+
+1. **Run Terminal Commands**: Execute shell commands
+   ```bash
+   agent "Run ls -la"
+   ```
+
+2. **Run Aider**: Analyze and modify code
+   ```bash
+   agent "Use aider to analyze the file app.py"
+   ```
+
+3. **Fetch Information**: Get information from external APIs
+   ```bash
+   agent "What's the weather in San Francisco?"
+   ```
+
+## How It Works
+
+The AI Agent CLI follows Unix philosophy by operating on the current working directory. Simply navigate to the directory where you want to work and run the agent. This makes it intuitive and consistent with other command-line tools.
+
+Logs are stored in a centralized, platform-specific location to ensure they're accessible regardless of where the agent is run from.
 
 ## License
 

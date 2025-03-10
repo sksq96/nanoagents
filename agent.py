@@ -3,6 +3,7 @@
 MCP Simple Agent - A simplified agent that works with MCP servers.
 """
 
+from datetime import datetime
 import json
 import logging
 import time
@@ -12,7 +13,6 @@ from typing import List, Dict, Any, Callable, Optional, Tuple, Union
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-# Optional imports for OpenAI integration
 try:
     from openai import OpenAI
     OPENAI_AVAILABLE = True
@@ -126,6 +126,9 @@ class MCPSimpleAgent:
         for tool in tools:
             description = getattr(tool, 'description', f"Call the {tool.name} tool")
             prompt += f"- {tool.name}: {description}\n"
+            parameters = getattr(tool, 'parameters', None)
+            if parameters:
+                prompt += f"Parameters: {parameters}\n"
         
         # Add final_answer if not already available
         if "final_answer" not in tool_names:
@@ -142,17 +145,20 @@ class MCPSimpleAgent:
     
     async def _process_step(self, step_count: int, max_steps: int):
         """Process a single agent step."""
+        print("\n\n\n")
         logger.info(f"Step {step_count}/{max_steps}")
         
         # Log messages
         messages = self.get_openai_messages()
-        logger.info(f"Sending messages to model: {json.dumps(messages, indent=2)}")
+        # logger.info(f"Sending messages to model: {json.dumps(messages, indent=2)}")
         
         start_time = time.time()
         try:
             # Call model and parse response
             model_output = self.model(messages)
             tool_name, tool_args = parse_json_tool_call(model_output)
+            print(f"\033[94mTool name:\033[0m {tool_name}")
+            print(f"\033[94mTool args:\033[0m {tool_args}")
             
             # Add assistant message
             self.add_message(ASSISTANT, model_output)
@@ -161,8 +167,13 @@ class MCPSimpleAgent:
             if tool_name == "final_answer":
                 final_answer = tool_args.get("answer", "")
                 observation = f"Final answer: {final_answer}"
-                logger.info(observation)
+                print(f"\033[94mObservation:\033[0m {observation}")
                 self.add_message(USER, observation)
+                # Log final answer messages to file
+                # with open(f'agent/logs/messages_{datetime.now().strftime("%Y%m%d_%H%M%S")}.jsonl', 'w') as f:
+                #     for message in self.messages:
+                #         f.write(json.dumps(message))
+                #         f.write("\n")
                 return final_answer
             
             # Call tool
@@ -171,7 +182,8 @@ class MCPSimpleAgent:
                 raise ValueError(f"Tool not found: {tool_name}")
                 
             result = await self.mcp_session.call_tool(tool_name, tool_args)
-            observation = clean_observation(str(result))
+            print(f"Observation: {result.content[0].text}")
+            observation = result.content[0].text
             self.add_message(USER, observation)
             
         except Exception as e:
@@ -199,6 +211,7 @@ class MCPSimpleAgent:
                 
                 # Update system prompt with tools and reset memory
                 self.system_prompt = self._enhance_system_prompt_with_tools(self.available_tools.tools)
+                print(f"System prompt: {self.system_prompt}")
                 self.reset_memory()
                 self.add_message(USER, task)
                 
